@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "categories")
@@ -29,6 +30,9 @@ public class Category {
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Tour> tours; 
+    
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
