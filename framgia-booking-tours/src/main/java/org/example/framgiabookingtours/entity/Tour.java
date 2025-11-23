@@ -39,8 +39,7 @@ public class Tour {
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    @Lob // Kiểu TEXT
-    @Column(name = "description")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "location", length = 150)
@@ -55,7 +54,6 @@ public class Tour {
     @Column(name = "available_slots")
     private Integer availableSlots = 0;
 
-    @Lob
     @Column(name = "image_url")
     private String imageUrl;
 
