@@ -33,7 +33,7 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Tour> tours;
 
-    @PrePersist
+@PrePersist
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = Instant.now();
