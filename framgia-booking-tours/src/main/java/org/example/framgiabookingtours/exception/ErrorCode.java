@@ -21,7 +21,12 @@ public enum ErrorCode {
     ACCOUNT_LOCKED(1012, "Account is locked", HttpStatus.FORBIDDEN),
     TOUR_NOT_ENOUGH_SLOTS(1013, "Tour không đủ chỗ. Chỉ còn %d chỗ", HttpStatus.BAD_REQUEST),
     TOUR_NOT_FOUND(1014, "Tour not found", HttpStatus.NOT_FOUND),
-    TOUR_NOT_AVAILABLE(1015, "Tour not available now", HttpStatus.NOT_FOUND);;
+    TOUR_NOT_AVAILABLE(1015, "Tour not available now", HttpStatus.NOT_FOUND),
+    FULL_NAME_TOO_LONG(1201, "Full name must be less than 100 characters", HttpStatus.BAD_REQUEST),
+    PHONE_TOO_LONG(1202, "Phone number must be less than 20 characters", HttpStatus.BAD_REQUEST),
+    BANK_NAME_TOO_LONG(1203, "Bank name must be less than 100 characters", HttpStatus.BAD_REQUEST),
+    BANK_ACCOUNT_TOO_LONG(1204, "Bank account number must be less than 50 characters", HttpStatus.BAD_REQUEST),
+    PROFILE_UPDATE_FAILED(1205, "Update profile failed", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {
         this.code = code;
