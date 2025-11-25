@@ -3,6 +3,7 @@ package org.example.framgiabookingtours.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.framgiabookingtours.dto.request.ReviewRequestDTO;
+import org.example.framgiabookingtours.dto.request.UpdateReviewRequestDTO;
 import org.example.framgiabookingtours.dto.response.ReviewResponseDTO;
 import org.example.framgiabookingtours.entity.Booking;
 import org.example.framgiabookingtours.entity.Review;
@@ -43,7 +44,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         // Kiểm tra booking đã hoàn thành
-        if (booking.getStatus() != BookingStatus.COMPLETED) {
+        if (booking.getStatus() != BookingStatus.PAID) {
             throw new AppException(ErrorCode.BOOKING_NOT_COMPLETED);
         }
 
@@ -72,6 +73,45 @@ public class ReviewServiceImpl implements ReviewService {
                 .rating(savedReview.getRating())
                 .createdAt(savedReview.getCreatedAt())
                 .updatedAt(savedReview.getUpdatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public ReviewResponseDTO updateReview(Long reviewId, UpdateReviewRequestDTO request, String userEmail) {
+        // Tìm user
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // Tìm review
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+
+        // Kiểm tra review có bị xóa không
+        if (review.getIsDeleted()) {
+            throw new AppException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        // Kiểm tra review thuộc về user (thông qua booking)
+        if (!review.getBooking().getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.REVIEW_NOT_BELONG_TO_USER);
+        }
+
+        // Cập nhật chỉ rating và content
+        review.setRating(request.getRating());
+        review.setContent(request.getContent());
+
+        Review updatedReview = reviewRepository.save(review);
+
+        // Map sang DTO
+        return ReviewResponseDTO.builder()
+                .id(updatedReview.getId())
+                .bookingId(updatedReview.getBooking().getId())
+                .title(updatedReview.getTitle())
+                .content(updatedReview.getContent())
+                .rating(updatedReview.getRating())
+                .createdAt(updatedReview.getCreatedAt())
+                .updatedAt(updatedReview.getUpdatedAt())
                 .build();
     }
 }

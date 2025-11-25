@@ -25,7 +25,9 @@ public enum ErrorCode {
     BOOKING_NOT_FOUND(1016, "Booking not found", HttpStatus.NOT_FOUND),
     BOOKING_NOT_COMPLETED(1017, "Booking is not completed, cannot create review", HttpStatus.BAD_REQUEST),
     REVIEW_ALREADY_EXISTS(1018, "Review already exists for this booking", HttpStatus.BAD_REQUEST),
-    BOOKING_NOT_BELONG_TO_USER(1019, "Booking does not belong to this user", HttpStatus.FORBIDDEN);;
+    BOOKING_NOT_BELONG_TO_USER(1019, "Booking does not belong to this user", HttpStatus.FORBIDDEN),
+    REVIEW_NOT_FOUND(1020, "Review not found", HttpStatus.NOT_FOUND),
+    REVIEW_NOT_BELONG_TO_USER(1021, "Review does not belong to this user", HttpStatus.FORBIDDEN);
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {
         this.code = code;
