@@ -15,7 +15,7 @@ public class ProfileController {
 
 	private final ProfileService profileService;
 
-	@PutMapping("/me")
+	@PutMapping
 	public ApiResponse<ProfileResponseDTO> updateMyProfile(@RequestBody @Valid ProfileUpdateRequestDTO request,
 			// TẠM THỜI: Lấy email từ Header để test khi chưa có Security
 			// Sau này có Security thì dùng @AuthenticationPrincipal hoặc
