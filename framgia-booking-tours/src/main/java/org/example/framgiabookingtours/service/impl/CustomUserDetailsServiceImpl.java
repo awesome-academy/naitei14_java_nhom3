@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class CustomUserDetailsServiceImpl implements CustomUserDetailsService, UserDetailsService {
+public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     UserRepository userRepository;
 
     @Override
