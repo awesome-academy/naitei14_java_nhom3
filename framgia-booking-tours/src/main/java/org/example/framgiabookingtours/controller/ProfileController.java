@@ -83,4 +83,5 @@ public class ProfileController {
 
 		return ApiResponse.<ProfileResponseDTO>builder().result(result).message("Update banking info success").build();
 	}
+
 }
