@@ -2,11 +2,19 @@ package org.example.framgiabookingtours.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.UUID;
+
 import org.example.framgiabookingtours.dto.ApiResponse;
 import org.example.framgiabookingtours.dto.request.ProfileUpdateRequestDTO;
 import org.example.framgiabookingtours.dto.response.ProfileResponseDTO;
+import org.example.framgiabookingtours.exception.AppException;
+import org.example.framgiabookingtours.exception.ErrorCode;
+import org.example.framgiabookingtours.service.ImageUploadService;
 import org.example.framgiabookingtours.service.ProfileService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/profiles")
@@ -14,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProfileController {
 
 	private final ProfileService profileService;
+	private final ImageUploadService imageUploadService;
 
 	@PutMapping
 	public ApiResponse<ProfileResponseDTO> updateMyProfile(@RequestBody @Valid ProfileUpdateRequestDTO request,
@@ -29,5 +38,34 @@ public class ProfileController {
 		ProfileResponseDTO result = profileService.updateProfile(request, userEmail);
 
 		return ApiResponse.<ProfileResponseDTO>builder().result(result).message("Update profile success").build();
+	}
+
+	@PostMapping(value = "/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ApiResponse<ProfileResponseDTO> uploadAndSetAvatar(@RequestParam("file") MultipartFile file,
+			@RequestHeader(value = "X-User-Email", defaultValue = "test@gmail.com") String userEmail) {
+		if (file == null || file.isEmpty()) {
+			throw new AppException(ErrorCode.FILE_NULL);
+		}
+
+		try {
+			String fileName = "avatar-" + UUID.randomUUID().toString();
+			String folder = "user_avatars";
+
+			String avatarUrl = imageUploadService.uploadFile(file, fileName, folder);
+
+			ProfileUpdateRequestDTO request = new ProfileUpdateRequestDTO();
+			request.setAvatarUrl(avatarUrl);
+
+			ProfileResponseDTO result = profileService.updateProfile(request, userEmail);
+
+			return ApiResponse.<ProfileResponseDTO>builder().result(result).message("Avatar updated successfully")
+					.build();
+
+		} catch (AppException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new AppException(ErrorCode.UPLOAD_FAILED);
+		}
 	}
 }

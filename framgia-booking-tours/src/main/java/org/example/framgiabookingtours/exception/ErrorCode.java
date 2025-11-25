@@ -27,6 +27,8 @@ public enum ErrorCode {
     BANK_NAME_TOO_LONG(1203, "Bank name must be less than 100 characters", HttpStatus.BAD_REQUEST),
     BANK_ACCOUNT_TOO_LONG(1204, "Bank account number must be less than 50 characters", HttpStatus.BAD_REQUEST),
     PROFILE_UPDATE_FAILED(1205, "Update profile failed", HttpStatus.BAD_REQUEST),
+    FILE_NULL(1301, "File is null or empty", HttpStatus.BAD_REQUEST),
+    UPLOAD_FAILED(1302, "File upload failed", HttpStatus.INTERNAL_SERVER_ERROR),
     BOOKING_NOT_FOUND(1016, "Booking not found", HttpStatus.NOT_FOUND),
     BOOKING_NOT_COMPLETED(1017, "Booking is not completed, cannot create review", HttpStatus.BAD_REQUEST),
     REVIEW_ALREADY_EXISTS(1018, "Review already exists for this booking", HttpStatus.BAD_REQUEST),
