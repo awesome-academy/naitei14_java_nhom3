@@ -100,7 +100,36 @@
 
 				<div
 					class="px-6 py-4 bg-gray-50 border-t flex justify-between items-center text-sm text-gray-600">
-					<span>Hiển thị 1-10 user</span>
+					<div>
+						Hiển thị <span class="font-bold"
+							th:text="${(currentPage - 1) * pageSize + 1}">1</span> - <span
+							class="font-bold"
+							th:text="${(currentPage * pageSize) > totalItems ? totalItems : (currentPage * pageSize)}">10</span>
+						trong tổng số <span class="font-bold" th:text="${totalItems}">50</span>
+						người dùng
+					</div>
+
+					<div class="flex gap-1" th:if="${totalPages > 1}">
+						<a
+							th:href="@{/admin/users(page=${currentPage - 1}, size=${pageSize})}"
+							th:classappend="${currentPage == 1} ? 'pointer-events-none opacity-50' : ''"
+							class="px-3 py-1 border rounded bg-white hover:bg-gray-100 transition">
+							Trước </a>
+
+						<th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+							<a th:if="${i >= currentPage - 2 && i <= currentPage + 2}"
+								th:href="@{/admin/users(page=${i}, size=${pageSize})}"
+								th:text="${i}"
+								th:classappend="${currentPage == i} ? 'bg-blue-600 text-white border-blue-600' : 'bg-white hover:bg-gray-100'"
+								class="px-3 py-1 border rounded transition"> </a>
+						</th:block>
+
+						<a
+							th:href="@{/admin/users(page=${currentPage + 1}, size=${pageSize})}"
+							th:classappend="${currentPage == totalPages} ? 'pointer-events-none opacity-50' : ''"
+							class="px-3 py-1 border rounded bg-white hover:bg-gray-100 transition">
+							Sau </a>
+					</div>
 				</div>
 			</div>
 		</main>

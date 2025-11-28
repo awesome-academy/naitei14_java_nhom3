@@ -2,6 +2,11 @@ package org.example.framgiabookingtours.controller.admin;
 
 import org.example.framgiabookingtours.entity.*;
 import org.example.framgiabookingtours.enums.*;
+import org.example.framgiabookingtours.service.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +25,10 @@ import java.util.List;
 public class AdminUserController {
 
 	private final List<User> mockUsers = new ArrayList<>();
+	private final UserService userService;
 
-	public AdminUserController() {
+	public AdminUserController(UserService userService) {
+		this.userService = userService;
 		initMockData();
 	}
 
@@ -93,13 +100,21 @@ public class AdminUserController {
 	}
 
 	@GetMapping
-	public String listUsers(Model model, @RequestParam(required = false) String status,
+	public String listUsers(Model model, @RequestParam(defaultValue = "1") int page,
+			@RequestParam(defaultValue = "5") int size, @RequestParam(required = false) String status,
 			@RequestParam(required = false) String role, @RequestParam(required = false) String keyword) {
 
 		model.addAttribute("activeMenu", "users");
-		model.addAttribute("pageTitle", "Danh sách người dùng");
 
-		model.addAttribute("users", mockUsers);
+		Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
+
+		Page<User> userPage = userService.getAllUsers(pageable);
+
+		model.addAttribute("users", userPage.getContent());
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", userPage.getTotalPages());
+		model.addAttribute("totalItems", userPage.getTotalElements());
+		model.addAttribute("pageSize", size);
 
 		return "admin/users";
 	}
