@@ -52,6 +52,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/my-bookings").authenticated()
                         .anyRequest().permitAll() // Tạm permit
                 )
 
