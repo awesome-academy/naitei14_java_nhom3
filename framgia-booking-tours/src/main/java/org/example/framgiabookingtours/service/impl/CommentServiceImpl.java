@@ -21,6 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -138,6 +142,57 @@ public class CommentServiceImpl implements CommentService {
 
         // Map sang DTO
         return comments.map(this::mapToDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CommentResponseDTO> getCommentThreadByReviewId(Long reviewId) {
+        // Kiểm tra review tồn tại và chưa bị xóa
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new AppException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (review.getIsDeleted()) {
+            throw new AppException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        // Lấy toàn bộ comments (chưa xóa) theo review
+        List<Comment> comments = commentRepository
+                .findAllByReviewIdAndIsDeletedFalseOrderByCreatedAtAsc(reviewId);
+
+        // Map Comment -> DTO trước
+        Map<Long, CommentResponseDTO> dtoMap = new HashMap<>();
+        for (Comment comment : comments) {
+            CommentResponseDTO dto = mapToDTO(comment);
+            dto.setReplies(new ArrayList<>()); // chuẩn bị list rỗng cho replies
+            dtoMap.put(dto.getId(), dto);
+        }
+
+        // Xây cây: gom các child vào replies của parent
+        List<CommentResponseDTO> roots = new ArrayList<>();
+        for (Comment comment : comments) {
+            CommentResponseDTO dto = dtoMap.get(comment.getId());
+            Long parentId = comment.getParentComment() != null
+                    ? comment.getParentComment().getId()
+                    : null;
+
+            if (parentId == null) {
+                // Comment gốc
+                roots.add(dto);
+            } else {
+                CommentResponseDTO parentDto = dtoMap.get(parentId);
+                if (parentDto != null) {
+                    if (parentDto.getReplies() == null) {
+                        parentDto.setReplies(new ArrayList<>());
+                    }
+                    parentDto.getReplies().add(dto);
+                } else {
+                    // Trong trường hợp hiếm hoi parent không tồn tại trong danh sách (an toàn)
+                    roots.add(dto);
+                }
+            }
+        }
+
+        return roots;
     }
 
     private CommentResponseDTO mapToDTO(Comment comment) {

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -21,6 +22,10 @@ public class CommentResponseDTO {
 
     // User info
     private UserInfoDTO user;
+
+    // Replies (children comments) for thread view.
+    // This field can be null when not using thread API.
+    private List<CommentResponseDTO> replies;
 
     @Data
     @Builder

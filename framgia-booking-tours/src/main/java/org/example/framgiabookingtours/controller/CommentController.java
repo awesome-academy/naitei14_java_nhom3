@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
@@ -81,6 +83,19 @@ public class CommentController {
                 .code(1000)
                 .message("Get comments successfully")
                 .result(comments)
+                .build();
+    }
+
+    @GetMapping("/thread")
+    public ApiResponse<List<CommentResponseDTO>> getCommentThreadByReviewId(
+            @RequestParam Long reviewId) {
+
+        List<CommentResponseDTO> thread = commentService.getCommentThreadByReviewId(reviewId);
+
+        return ApiResponse.<List<CommentResponseDTO>>builder()
+                .code(1000)
+                .message("Get comment thread successfully")
+                .result(thread)
                 .build();
     }
 }
