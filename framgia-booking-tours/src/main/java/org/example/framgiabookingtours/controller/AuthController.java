@@ -7,14 +7,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.framgiabookingtours.dto.ApiResponse;
 import org.example.framgiabookingtours.dto.CustomUserDetails;
-import org.example.framgiabookingtours.dto.request.LoginRequestDTO;
-import org.example.framgiabookingtours.dto.request.RegisterRequestDTO;
-import org.example.framgiabookingtours.dto.request.ResendOtpRequestDTO;
-import org.example.framgiabookingtours.dto.request.VerifyEmailRequestDTO;
+import org.example.framgiabookingtours.dto.request.*;
 import org.example.framgiabookingtours.dto.response.AuthResponseDTO;
+import org.example.framgiabookingtours.entity.User;
 import org.example.framgiabookingtours.service.AuthService;
 import org.example.framgiabookingtours.service.CustomUserDetailsService;
 import org.example.framgiabookingtours.util.JwtUtils;
+import org.example.framgiabookingtours.util.SecurityUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -73,6 +73,55 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message("Mã xác thực mới đã được gửi đến email của bạn. Vui lòng kiểm tra!")
+                .build());
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Làm mới access token bằng refresh token từ header X-Refresh-Token")
+    public ResponseEntity<ApiResponse<AuthResponseDTO>> refreshToken(
+            @RequestHeader(value = "X-Refresh-Token", required = false) String refreshToken) {
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.<AuthResponseDTO>builder()
+                            .code(HttpStatus.BAD_REQUEST.value())
+                            .message("Refresh token không được để trống. Vui lòng gửi qua header X-Refresh-Token hoặc body.")
+                            .build());
+        }
+
+        RefreshTokenRequestDTO requestDTO = RefreshTokenRequestDTO.builder()
+                .refreshToken(refreshToken)
+                .build();
+
+        AuthResponseDTO result = authService.refreshToken(requestDTO);
+
+        ApiResponse<AuthResponseDTO> apiResponse = ApiResponse.<AuthResponseDTO>builder()
+                .code(HttpStatus.OK.value())
+                .result(result)
+                .message("Làm mới token thành công!")
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Đăng xuất - xóa refresh token và thêm vào blacklist",
+            description = "Yêu cầu Bearer token trong header Authorization")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader) {
+        User user = SecurityUtils.getCurrentUser().orElse(null);
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.<Void>builder()
+                            .code(HttpStatus.UNAUTHORIZED.value())
+                            .message("Người dùng chưa đăng nhập!")
+                            .build());
+        }
+        authService.logout(authHeader);
+
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .code(HttpStatus.OK.value())
+                .message("Đăng xuất thành công!")
                 .build());
     }
 }

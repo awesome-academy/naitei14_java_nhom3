@@ -1,9 +1,6 @@
 package org.example.framgiabookingtours.service;
 
-import org.example.framgiabookingtours.dto.request.LoginRequestDTO;
-import org.example.framgiabookingtours.dto.request.RegisterRequestDTO;
-import org.example.framgiabookingtours.dto.request.ResendOtpRequestDTO;
-import org.example.framgiabookingtours.dto.request.VerifyEmailRequestDTO;
+import org.example.framgiabookingtours.dto.request.*;
 import org.example.framgiabookingtours.dto.response.AuthResponseDTO;
 
 public interface AuthService {
@@ -11,4 +8,6 @@ public interface AuthService {
     void register(RegisterRequestDTO registerRequestDTO);
     AuthResponseDTO verify(VerifyEmailRequestDTO verifyEmailRequestDTO);
     void resendVerificationCode(ResendOtpRequestDTO resendDTO);
+    AuthResponseDTO refreshToken(RefreshTokenRequestDTO refreshDTO);
+    void logout(String authHeader);
 }

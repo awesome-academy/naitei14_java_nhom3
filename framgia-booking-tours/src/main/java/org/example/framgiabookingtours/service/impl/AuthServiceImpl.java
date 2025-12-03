@@ -4,10 +4,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.example.framgiabookingtours.dto.CustomUserDetails;
-import org.example.framgiabookingtours.dto.request.LoginRequestDTO;
-import org.example.framgiabookingtours.dto.request.RegisterRequestDTO;
-import org.example.framgiabookingtours.dto.request.ResendOtpRequestDTO;
-import org.example.framgiabookingtours.dto.request.VerifyEmailRequestDTO;
+import org.example.framgiabookingtours.dto.request.*;
 import org.example.framgiabookingtours.dto.response.AuthResponseDTO;
 import org.example.framgiabookingtours.dto.response.ProfileResponseDTO;
 import org.example.framgiabookingtours.entity.Profile;
@@ -27,6 +24,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
     String REFRESH_TOKEN_PREFIX = "refreshtoken:";
     String VERIFICATION_EMAIL_PREFIX = "verification-email:";
+    String BLACKLIST_TOKEN_PREFIX = "blacklist:";
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO loginRequestDTO) {
@@ -142,6 +142,83 @@ public class AuthServiceImpl implements AuthService {
         redisTemplate.delete(verifyRedisKey);
         var userDetail = userDetailsService.loadUserByUsername(user.getEmail());
         return generateAuthResponse(user, userDetail);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponseDTO refreshToken(RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        String refreshToken = refreshTokenRequestDTO.getRefreshToken();
+
+        try {
+            String email = jwtUtils.extractEmail(refreshToken);
+
+            if (email == null || email.isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+
+            String blacklistKey = BLACKLIST_TOKEN_PREFIX + refreshToken;
+            Boolean isBlacklisted = redisTemplate.hasKey(blacklistKey);
+            if (isBlacklisted) {
+                throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+
+            String refreshRedisKey = REFRESH_TOKEN_PREFIX + email;
+            String storedRefreshToken = redisTemplate.opsForValue().get(refreshRedisKey);
+
+            if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+                throw new AppException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+            }
+
+            if (jwtUtils.isTokenExpired(refreshToken)) {
+                redisTemplate.delete(refreshRedisKey);
+                throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+            }
+
+            CustomUserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            if (!jwtUtils.isTokenValid(refreshToken, userDetails)) {
+                throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+
+            String newAccessToken =  jwtUtils.generateAccessToken(userDetails);
+
+            return AuthResponseDTO.builder()
+                    .accessToken(newAccessToken)
+                    .refreshToken(refreshToken)
+                    .build();
+
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void logout(String authHeader) {
+        String accessToken = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
+
+        if (accessToken != null) {
+            jwtUtils.blacklistToken(accessToken);
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String userEmail = authentication.getName();
+            String redisKey = REFRESH_TOKEN_PREFIX + userEmail;
+            redisTemplate.delete(redisKey);
+        }
     }
 
     @Override

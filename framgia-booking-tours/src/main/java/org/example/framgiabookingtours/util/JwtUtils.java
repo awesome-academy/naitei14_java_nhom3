@@ -29,6 +29,8 @@ public class JwtUtils {
     JwtProperties jwtProperties;
     RedisTemplate<String, String> redisTemplate;
 
+    String BLACK_LIST_PREFIX = "blacklist:";
+
     public String generateAccessToken(CustomUserDetails userDetails) {
         return buildToken(new HashMap<>(), userDetails, jwtProperties.getAccessTokenExpiration());
     }
@@ -64,6 +66,27 @@ public class JwtUtils {
         String userEmail = extractEmail(token);
 
         return (userEmail.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    public boolean isTokenInBlacklist(String token) {
+        try {
+            String jti = extractId(token);
+            String key = BLACK_LIST_PREFIX + jti;
+            return  redisTemplate.hasKey(key);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void blacklistToken(String token) {
+        String jti = extractId(token);
+        Date expirationDate = extractExpirationDate(token);
+        long remainingMillis = expirationDate.getTime() - System.currentTimeMillis();
+
+        if (remainingMillis > 0) {
+            String key = BLACK_LIST_PREFIX + jti;
+            redisTemplate.opsForValue().set(key, "blacklisted", Duration.ofMillis(remainingMillis));
+        }
     }
 
     public boolean isTokenExpired(String token) {

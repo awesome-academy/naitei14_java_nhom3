@@ -50,7 +50,10 @@ public enum ErrorCode {
     VERIFICATION_CODE_INVALID(1034, "Verification code is invalid", HttpStatus.BAD_REQUEST),
     VERIFICATION_CODE_EXPIRED(1035, "Verification code has expired", HttpStatus.BAD_REQUEST),
     RESEND_OTP_TOO_SOON(1036, "Please wait before requesting a new verification code", HttpStatus.TOO_MANY_REQUESTS),
-    USER_ALREADY_VERIFIED(1037, "User already verified", HttpStatus.BAD_REQUEST);
+    USER_ALREADY_VERIFIED(1037, "User already verified", HttpStatus.BAD_REQUEST),
+    REFRESH_TOKEN_IS_REQUIRED(1038, "Refresh token is required", HttpStatus.BAD_REQUEST),
+    INVALID_REFRESH_TOKEN(1039, "Invalid refresh token", HttpStatus.UNAUTHORIZED),
+    REFRESH_TOKEN_NOT_FOUND(1040, "Refresh token not found", HttpStatus.NOT_FOUND);
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {
         this.code = code;

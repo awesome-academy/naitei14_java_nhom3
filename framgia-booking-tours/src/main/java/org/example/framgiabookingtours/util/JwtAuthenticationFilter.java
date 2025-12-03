@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String email = jwtUtils.extractEmail(token);
         CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
 
-        if (StringUtils.hasText(token) && jwtUtils.isTokenValid(token, userDetails)) {
+        if (StringUtils.hasText(token) && jwtUtils.isTokenValid(token, userDetails) && !jwtUtils.isTokenInBlacklist(token)) {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null,
                     userDetails.getAuthorities());
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -57,6 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.equals("/api/auth/login")
                 || path.equals("/api/auth/register")
                 || path.equals("/api/auth/verify")
+                || path.equals("/api/auth/resend-otp")
                 || path.equals("/api/auth/refresh")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger")

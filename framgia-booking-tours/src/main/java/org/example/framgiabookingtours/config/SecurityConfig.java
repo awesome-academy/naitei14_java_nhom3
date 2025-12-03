@@ -52,8 +52,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/my-bookings").permitAll() //.authenticated() tạm thời permit
-                        .anyRequest().permitAll() // Tạm permit
+                        .requestMatchers("/my-bookings").authenticated()
+                        .anyRequest().authenticated()
                 )
 
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
