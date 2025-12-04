@@ -1,5 +1,5 @@
-create database if not exists framgia_booking_tours1;
-use framgia_booking_tours1;
+create database if not exists framgia_booking_tours;
+use framgia_booking_tours;
 
 CREATE TABLE users (
                        id bigint PRIMARY KEY AUTO_INCREMENT,
