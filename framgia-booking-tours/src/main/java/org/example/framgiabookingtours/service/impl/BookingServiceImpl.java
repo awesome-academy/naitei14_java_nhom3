@@ -144,10 +144,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getAllBookings() {
-        // Chúng ta cần một hàm mới trong Repository
-        // (Chúng ta sẽ thêm nó ngay sau đây)
         log.info("Admin đang lấy tất cả booking...");
         return bookingRepository.findAllWithUserAndTour();
+    }
+    
+    @Override
+    public List<Booking> getBookingsByUserId(Long userId) {
+        return bookingRepository.findByUserIdOrderByBookingDateDesc(userId);
     }
 }
 

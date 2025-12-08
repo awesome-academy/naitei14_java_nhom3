@@ -51,8 +51,8 @@ body {
 @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
 @keyframes slideDown { from {transform: translateY(-50px);opacity: 0;} to {transform: translateY(0);opacity: 1;} }
 
-/* Toggle Switch */
-.toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+/* Toggle Switch CSS */
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 22px; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
 .slider { 
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
@@ -79,5 +79,6 @@ body {
 	color: #991b1b;
 	border: 1px solid #fecaca;
 }
+
 input:checked + .slider { background-color: #10b981; }
-input:checked + .slider:before { transform: translateX(26px); }
+input:checked + .slider:before { transform: translateX(22px); }
