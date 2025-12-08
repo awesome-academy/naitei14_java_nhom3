@@ -25,13 +25,15 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 	long countByStatus(BookingStatus status);
 
 	// Tính tổng doanh thu của các booking đã thanh toán (PAID)
-    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = 'PAID'")
-    BigDecimal sumTotalRevenue();
+  @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = 'PAID'")
+  BigDecimal sumTotalRevenue();
 
-    // Đếm số booking trong khoảng thời gian (Dùng cho Booking hôm nay)
-    long countByBookingDateBetween(LocalDateTime start, LocalDateTime end);
+  // Đếm số booking trong khoảng thời gian (Dùng cho Booking hôm nay)
+  long countByBookingDateBetween(LocalDateTime start, LocalDateTime end);
     
-    // (Nâng cao) Tính doanh thu theo tháng cụ thể để tính tăng trưởng
-    @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = 'PAID' AND MONTH(b.bookingDate) = :month AND YEAR(b.bookingDate) = :year")
-    BigDecimal sumRevenueByMonth(@Param("month") int month, @Param("year") int year);
+  // (Nâng cao) Tính doanh thu theo tháng cụ thể để tính tăng trưởng
+  @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = 'PAID' AND MONTH(b.bookingDate) = :month AND YEAR(b.bookingDate) = :year")
+  BigDecimal sumRevenueByMonth(@Param("month") int month, @Param("year") int year);
+
+  List<Booking> findByUserIdOrderByBookingDateDesc(Long userId);
 }
