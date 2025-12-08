@@ -46,7 +46,6 @@
                 </div>
                 <div class="ml-3">
                     <p class="font-medium" th:text="${errorMessage}"></p>
-                    <p th:if="${errorCode}" class="text-xs mt-1 text-red-600" th:text="'(Error Code: ' + ${errorCode} + ')'"></p>
                 </div>
             </div>
         </div>
@@ -75,6 +74,7 @@
                             type="email"
                             id="email"
                             name="username"
+                            th:value="${email}"
                             required
                             autocomplete="email"
                             class="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:outline-none"

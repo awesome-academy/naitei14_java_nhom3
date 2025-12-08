@@ -22,11 +22,15 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         );
 
         if (hasAdminRole) {
-            response.sendRedirect("/dashboard");
+            response.sendRedirect("admin/dashboard");
         } else {
+            String email = authentication.getName();
             request.getSession().invalidate();
+
             ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-            response.sendRedirect("/login?error=access_denied&message=" + errorCode.getMessage());
+
+            response.sendRedirect("/login?error=access_denied&message=" + errorCode.getMessage() +
+                    "&email=" + email);
         }
     }
 }

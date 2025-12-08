@@ -35,7 +35,9 @@ public class CustomAuthenticationFailureHandler implements AuthenticationFailure
             errorCode = ErrorCode.UNAUTHENTICATED;
         }
 
-        String encodedMessage = URLEncoder.encode(errorCode.getMessage(), StandardCharsets.UTF_8);
-        response.sendRedirect("/login?error=true&message=" + encodedMessage + "&code=" + errorCode.getCode());
+        String email = request.getParameter("username");
+
+        response.sendRedirect("/login?error=true&message=" + errorCode.getMessage() +
+                "&email=" + email);
     }
 }

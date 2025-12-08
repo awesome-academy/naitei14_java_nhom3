@@ -8,10 +8,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AdminLoginController {
 
-    @GetMapping("/login")
+    @GetMapping("login")
     public String loginPage(
             @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "message", required = false) String message,
+            @RequestParam(value = "email", required = false) String email,
             @RequestParam(value = "logout", required = false) String logout,
             Model model) {
 
@@ -28,6 +29,10 @@ public class AdminLoginController {
 
         if (logout != null) {
             model.addAttribute("successMessage", "Đăng xuất thành công!");
+        }
+
+        if (email != null && !email.isEmpty()) {
+            model.addAttribute("email", email);
         }
 
         return "admin/login";

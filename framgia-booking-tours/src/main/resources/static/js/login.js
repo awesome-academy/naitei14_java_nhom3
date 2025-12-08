@@ -15,6 +15,17 @@ function togglePasswordVisibility() {
     }
 }
 
+window.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+
+    if (emailInput.value) {
+        passwordInput.focus();
+    } else {
+        emailInput.focus();
+    }
+});
+
 setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {
