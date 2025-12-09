@@ -11,6 +11,11 @@ import java.util.List;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @EntityGraph(attributePaths = {"booking", "booking.user"})
-    @Query("SELECT p FROM Payment p ORDER BY p.paymentDate DESC")
+    @Query("SELECT p FROM Payment p " +
+            "LEFT JOIN FETCH p.booking b " +
+            "LEFT JOIN FETCH b.user u " +
+            "ORDER BY p.paymentDate DESC")
     List<Payment> findAllWithBookingAndUser();
+
+    List<Payment> findAllByOrderByPaymentDateDesc();
 }

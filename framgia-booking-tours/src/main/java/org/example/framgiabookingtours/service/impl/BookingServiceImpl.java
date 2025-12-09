@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,12 +40,13 @@ public class BookingServiceImpl implements BookingService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
-        Tour tour = tourRepository.findById(request.getTourId())
+        Tour tour = tourRepository.findByIdWithLock(request.getTourId())
                 .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
 
         if (tour.getStatus() != TourStatus.AVAILABLE) {
             throw new AppException(ErrorCode.TOUR_NOT_AVAILABLE);
         }
+
         if (tour.getAvailableSlots() < request.getNumPeople()) {
             throw new AppException(ErrorCode.TOUR_NOT_ENOUGH_SLOTS, tour.getAvailableSlots());
         }
@@ -52,12 +54,13 @@ public class BookingServiceImpl implements BookingService {
         tour.setAvailableSlots(tour.getAvailableSlots() - request.getNumPeople());
         tourRepository.save(tour);
 
-        BigDecimal totalPrice = tour.getPrice().multiply(new BigDecimal(request.getNumPeople()));
+        BigDecimal totalPrice = tour.getPrice().multiply(BigDecimal.valueOf(request.getNumPeople()));
 
         Booking booking = Booking.builder()
                 .user(user)
                 .tour(tour)
                 .startDate(request.getStartDate())
+                .bookingDate(LocalDateTime.now())
                 .numPeople(request.getNumPeople())
                 .totalPrice(totalPrice)
                 .status(BookingStatus.PENDING)
@@ -70,30 +73,32 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Booking cancelBooking(Long bookingId, String userEmail) {
-
+    public BookingResponseDTO cancelBooking(Long bookingId, String userEmail) {
         Booking booking = findBookingByIdAndUserEmail(bookingId, userEmail);
 
-
-        if (booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.CONFIRMED) {
-            throw new AppException(ErrorCode.TOUR_NOT_ENOUGH_SLOTS, booking.getStatus());
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.PAID) {
+            throw new AppException(ErrorCode.BOOKING_CANNOT_CANCEL, booking.getStatus());
         }
 
-        Tour tour = booking.getTour();
+        Tour tour = tourRepository.findByIdWithLock(booking.getTour().getId())
+                .orElseThrow(() -> new AppException(ErrorCode.TOUR_NOT_FOUND));
+
         if (tour != null) {
             tour.setAvailableSlots(tour.getAvailableSlots() + booking.getNumPeople());
             tourRepository.save(tour);
             log.info("User Hủy: Đã hoàn lại {} chỗ cho Tour ID: {}", booking.getNumPeople(), tour.getId());
         }
 
-
         if(booking.getStatus() == BookingStatus.PAID) {
             log.warn("Booking ID: {} đã được thanh toán (PAID). User hủy yêu cầu xử lý hoàn tiền (REFUND) thủ công!", bookingId);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
-        log.info("User đã hủy (Cancelled) Booking ID: {}", bookingId);
-        return bookingRepository.save(booking);
+        Booking savedBooking = bookingRepository.save(booking);
+
+        log.info("User {} đã hủy thành công Booking ID: {}", userEmail, bookingId);
+
+        return BookingResponseDTO.fromEntity(savedBooking);
     }
 
     private Booking findBookingByIdAndUserEmail(Long bookingId, String userEmail) {
@@ -151,6 +156,57 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> getBookingsByUserId(Long userId) {
         return bookingRepository.findByUserIdOrderByBookingDateDesc(userId);
+    }
+
+    @Override
+    @Transactional
+    public Booking adminApproveBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (booking.getStatus() != BookingStatus.PAID) {
+            throw new AppException(ErrorCode.BOOKING_CANNOT_CONFIRM);
+        }
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        log.info("Admin đã DUYỆT (Confirmed) Booking ID: {}", bookingId);
+
+        return bookingRepository.save(booking);
+    }
+
+    @Override
+    @Transactional
+    public Booking adminRejectBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new AppException(ErrorCode.BOOKING_ALREADY_CANCELLED);
+        }
+
+        Tour tour = booking.getTour();
+        if (tour != null) {
+            int currentSlots = tour.getAvailableSlots();
+            int returnSlots = booking.getNumPeople();
+
+            tour.setAvailableSlots(currentSlots + returnSlots);
+            tourRepository.save(tour);
+
+            log.info("Admin Hủy: Đã hoàn lại {} chỗ cho Tour ID: {}. Slot mới: {}",
+                    returnSlots, tour.getId(), tour.getAvailableSlots());
+        }
+
+        if(booking.getStatus() == BookingStatus.PAID || booking.getStatus() == BookingStatus.CONFIRMED) {
+            log.warn("CẢNH BÁO: Booking ID {} trạng thái cũ là {}. Admin cần kiểm tra và HOÀN TIỀN thủ công cho khách!",
+                    bookingId, booking.getStatus());
+        }
+
+        BookingStatus oldStatus = booking.getStatus();
+        booking.setStatus(BookingStatus.CANCELLED);
+
+        log.info("Admin đã chuyển trạng thái Booking ID: {} từ {} sang CANCELLED", bookingId, oldStatus);
+
+        return bookingRepository.save(booking);
     }
 }
 
