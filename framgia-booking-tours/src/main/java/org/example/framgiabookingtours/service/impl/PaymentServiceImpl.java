@@ -170,6 +170,31 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+    @Override
+    public List<Payment> getAllPaymentsDesc() {
+        log.info("Admin đang lấy tất cả payments (có sort DESC)...");
+        // Gọi hàm tối ưu trong Repository
+        return paymentRepository.findAllWithBookingAndUser();
+    }
 
+    @Override
+    @Transactional
+    public Payment markAsRefunded(Long paymentId) {
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getPaymentStatus() != PaymentStatus.SUCCESS) {
+            log.warn("Admin cố gắng hoàn tiền cho Payment ID: {} nhưng trạng thái là {}", paymentId, payment.getPaymentStatus());
+            throw new AppException(ErrorCode.PAYMENT_NOT_SUCCESS);
+        }
+
+
+        payment.setPaymentStatus(PaymentStatus.REFUNDED);
+        paymentRepository.save(payment);
+
+        log.info("Admin đã đánh dấu hoàn tiền (REFUNDED) thành công cho Payment ID: {}", paymentId);
+        return payment;
+    }
 }
 

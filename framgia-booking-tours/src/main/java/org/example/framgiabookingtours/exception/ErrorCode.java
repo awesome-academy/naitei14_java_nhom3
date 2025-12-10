@@ -29,17 +29,12 @@ public enum ErrorCode {
     PROFILE_UPDATE_FAILED(1205, "Update profile failed", HttpStatus.BAD_REQUEST),
     FILE_NULL(1301, "File is null or empty", HttpStatus.BAD_REQUEST),
     UPLOAD_FAILED(1302, "File upload failed", HttpStatus.INTERNAL_SERVER_ERROR),
-    BOOKING_NOT_FOUND(1016, "Booking not found", HttpStatus.NOT_FOUND),
-    BOOKING_NOT_COMPLETED(1017, "Booking is not completed, cannot create review", HttpStatus.BAD_REQUEST),
     REVIEW_ALREADY_EXISTS(1018, "Review already exists for this booking", HttpStatus.BAD_REQUEST),
-    BOOKING_NOT_BELONG_TO_USER(1019, "Booking does not belong to this user", HttpStatus.FORBIDDEN),
     REVIEW_NOT_FOUND(1020, "Review not found", HttpStatus.NOT_FOUND),
     REVIEW_NOT_BELONG_TO_USER(1021, "Review does not belong to this user", HttpStatus.FORBIDDEN),
-    BOOKING_INVALID_STATUS(1022, "Cannot cancel booking with status %s", HttpStatus.BAD_REQUEST),
     COMMENT_NOT_FOUND(1023, "Comment not found", HttpStatus.NOT_FOUND),
     COMMENT_NOT_BELONG_TO_USER(1024, "Comment does not belong to this user", HttpStatus.FORBIDDEN),
     COMMENT_NOT_BELONG_TO_REVIEW(1025, "Comment does not belong to this review", HttpStatus.BAD_REQUEST),
-    BOOKING_COMPLETE(1026, "This booking is completed", HttpStatus.BAD_REQUEST),
     INVALID_CREDENTIALS(1027, "Incorrect email or password", HttpStatus.UNAUTHORIZED),
     UNVERIFIED_EMAIL(1028, "Your account is not verified. Please check your email and activate your account.", HttpStatus.FORBIDDEN),
     INVALID_INPUT(1029, "Invalid input data", HttpStatus.BAD_REQUEST),
@@ -58,7 +53,18 @@ public enum ErrorCode {
     RESET_PASSWORD_CODE_EXPIRED(1042, "Password reset code has expired", HttpStatus.BAD_REQUEST),
     RESET_PASSWORD_CODE_IS_REQUIRED(1043, "Password reset code cannot be blank", HttpStatus.BAD_REQUEST),
     RESEND_RESET_PASSWORD_TOO_SOON(1044, "Please wait before requesting a new password reset code", HttpStatus.TOO_MANY_REQUESTS),
-    CANNOT_RESET_GOOGLE_ACCOUNT_PASSWORD(1045, "Cannot reset password for Google account", HttpStatus.BAD_REQUEST);
+    CANNOT_RESET_GOOGLE_ACCOUNT_PASSWORD(1045, "Cannot reset password for Google account", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_FOUND(11011, "Payment not found", HttpStatus.NOT_FOUND),
+    PAYMENT_ALREADY_EXISTS(11021, "Payment already exists for this booking", HttpStatus.BAD_REQUEST),
+    PAYMENT_NOT_SUCCESS(10091, "Refunds can only be made for SUCCESSFUL transactions.", HttpStatus.BAD_REQUEST),
+    BOOKING_ALREADY_CANCELLED(10121, "This order was previously cancelled.", HttpStatus.BAD_REQUEST),
+    BOOKING_NOT_FOUND(10161, "Booking not found", HttpStatus.NOT_FOUND),
+    BOOKING_NOT_COMPLETED(10171, "Booking is not completed, cannot create review", HttpStatus.BAD_REQUEST),
+    BOOKING_NOT_BELONG_TO_USER(10191, "Booking does not belong to this user", HttpStatus.FORBIDDEN),
+    BOOKING_INVALID_STATUS(10221, "Cannot cancel booking with status %s", HttpStatus.BAD_REQUEST),
+    BOOKING_COMPLETE(10261, "This booking is completed", HttpStatus.BAD_REQUEST),
+    BOOKING_CANNOT_CANCEL(10081, "Cannot cancel order in status %s", HttpStatus.BAD_REQUEST),
+    BOOKING_CANNOT_CONFIRM(10101, "Cannot confirm order in status %s", HttpStatus.BAD_REQUEST);
 
     ErrorCode(int code, String message, HttpStatusCode httpStatusCode) {
         this.code = code;

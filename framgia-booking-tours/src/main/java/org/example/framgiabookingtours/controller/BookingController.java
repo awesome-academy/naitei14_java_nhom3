@@ -64,13 +64,13 @@ public class BookingController {
     }
 
     @PutMapping("/{bookingId}/cancel")
-    public ApiResponse<Booking> cancelBooking(
+    public ApiResponse<BookingResponseDTO> cancelBooking(
             @PathVariable Long bookingId
     ) {
         String userEmail = getCurrentUserEmail();
-        Booking booking = bookingService.cancelBooking(bookingId, userEmail);
+        BookingResponseDTO booking = bookingService.cancelBooking(bookingId, userEmail);
 
-        return ApiResponse.<Booking>builder()
+        return ApiResponse.<BookingResponseDTO>builder()
                 .code(1000)
                 .message("Hủy booking thành công")
                 .result(booking)

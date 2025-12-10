@@ -10,10 +10,12 @@ import java.util.List;
 public interface BookingService {
 
     BookingResponseDTO createBooking(BookingRequestDTO request, String userEmail);
-    Booking cancelBooking(Long bookingId, String userEmail);
+    BookingResponseDTO cancelBooking(Long bookingId, String userEmail);
     List<BookingResponseDTO> getMyBookings(String userEmail);
     AdminDashboardStatsDTO getBookingStats();
     List<Booking> getAllBookings();
     List<Booking> getBookingsByUserId(Long userId);
+    Booking adminApproveBooking(Long bookingId);
+    Booking adminRejectBooking(Long bookingId);
 }
 
