@@ -36,4 +36,18 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
   BigDecimal sumRevenueByMonth(@Param("month") int month, @Param("year") int year);
 
   List<Booking> findByUserIdOrderByBookingDateDesc(Long userId);
+
+    @EntityGraph(attributePaths = {"user", "user.profile", "tour"})
+    @Query("SELECT b FROM Booking b WHERE " +
+            "(:keyword IS NULL OR :keyword = '' OR " +
+            "   LOWER(b.user.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+            "   LOWER(b.user.profile.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:status IS NULL OR b.status = :status) " +
+            "AND (:fromDate IS NULL OR b.bookingDate >= :fromDate) " +
+            "AND (:toDate IS NULL OR b.bookingDate <= :toDate) " +
+            "ORDER BY b.bookingDate DESC")
+    List<Booking> searchBookings(@Param("keyword") String keyword,
+                                 @Param("status") BookingStatus status,
+                                 @Param("fromDate") LocalDateTime fromDate,
+                                 @Param("toDate") LocalDateTime toDate);
 }
